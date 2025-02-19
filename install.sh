@@ -6,66 +6,67 @@ YELLOW='\033[0;33m'
 NC='\033[0m'
 
 clear
-echo -e "${GREEN}🚀 نصب خودکار پنل وایرگارد در حال اجرا است...${NC}\n"
+echo -e "${GREEN}🚀 WireGuard panel auto-installation is in progress...${NC}\n"
 
-# بررسی دسترسی روت
+# Check for root privileges
 if [[ $EUID -ne 0 ]]; then
-  echo -e "${RED}⛔ لطفاً اسکریپت را با دسترسی روت اجرا کنید!${NC}\n"
+  echo -e "${RED}⛔ Please run the script as root!${NC}\n"
   exit 1
 fi
 
-# دریافت آی‌پی سرور
+# Get server IP
 SERVER_IP=$(hostname -I | awk '{print $1}')
-echo -e "${GREEN}🌍 آی‌پی سرور: $SERVER_IP${NC}\n"
+echo -e "${GREEN}🌍 Server IP: $SERVER_IP${NC}\n"
 
-# بررسی نصب بودن داکر
+# Check if Docker is installed
 if ! command -v docker &> /dev/null; then
-    echo -e "${YELLOW}🛠 داکر نصب نیست. در حال نصب داکر...${NC}\n"
+    echo -e "${YELLOW}🛠 Docker is not installed. Installing Docker...${NC}\n"
     curl -fsSL https://get.docker.com | sh
     systemctl start docker
     systemctl enable docker
 fi
 
-# بررسی نصب بودن Docker Compose
+# Check if Docker Compose is installed
 if ! command -v docker compose &> /dev/null; then
-    echo -e "${YELLOW}🛠 در حال نصب Docker Compose...${NC}\n"
+    echo -e "${YELLOW}🛠 Installing Docker Compose...${NC}\n"
     sudo apt-get install -y docker-compose
 fi
 
-# مسیر نصب پروژه
+# Installation directory
 INSTALL_DIR="/root/Wireguard"
 
-# دریافت اطلاعات گیت‌هاب
-read -p "📝 لطفاً یوزرنیم گیت‌هاب خود را وارد کنید: " GITHUB_USER
-read -s -p "🔑 لطفاً توکن خصوصی گیت‌هاب را وارد کنید: " GITHUB_TOKEN
+# Get GitHub credentials
+read -p "📝 Enter your GitHub username: " GITHUB_USER
+read -s -p "🔑 Enter your GitHub personal access token: " GITHUB_TOKEN
 echo -e "\n"
 
-# بررسی و حذف نسخه قبلی
+# Remove existing version if present
 if [ -d "$INSTALL_DIR" ]; then
-    echo -e "${YELLOW}⚠️ نسخه قبلی پروژه یافت شد. حذف و نصب مجدد انجام می‌شود...${NC}\n"
+    echo -e "${YELLOW}⚠️ Existing project found. Removing and reinstalling...${NC}\n"
     rm -rf $INSTALL_DIR
 fi
 
-# کلون کردن پروژه پرایوت از گیت‌هاب
-echo -e "${GREEN}📥 دانلود پروژه از گیت‌هاب...${NC}\n"
+# Clone private GitHub repository
+echo -e "${GREEN}📥 Cloning project from GitHub...${NC}\n"
 git clone https://$GITHUB_USER:$GITHUB_TOKEN@github.com/$GITHUB_USER/Wireguard.git /root
 
-# بررسی موفقیت کلون شدن
+# Check if cloning was successful
 if [[ $? -ne 0 ]]; then
-    echo -e "${RED}⛔ خطا در کلون کردن پروژه! لطفاً توکن و یوزرنیم را بررسی کنید.${NC}\n"
+    echo -e "${RED}⛔ Error cloning the project! Please check your token and username.${NC}\n"
     exit 1
 fi
 
-# تغییر آی‌پی در فایل‌های تنظیمات
-echo -e "${YELLOW}🔄 جایگزینی آی‌پی سرور در تنظیمات...${NC}\n"
+# Replace server IP in configuration files
+echo -e "${YELLOW}🔄 Replacing server IP in configuration files...${NC}\n"
 cd $INSTALL_DIR
 sed -i "s/REPLACE_WITH_SERVER_IP/$SERVER_IP/g" $INSTALL_DIR/docker-compose.override.yml
 sed -i "s/REPLACE_WITH_SERVER_IP/$SERVER_IP/g" $INSTALL_DIR/Src/Services/Api/Wireguard.Api/appsettings.Development.json
 sed -i "s/REPLACE_WITH_SERVER_IP/$SERVER_IP/g" $INSTALL_DIR/Src/Services/Api/Wireguard.Api/appsettings.Development.json
-# اجرای داکر کامپوز
-echo -e "${GREEN}🚀 راه‌اندازی سرویس...${NC}\n"
+
+# Start Docker Compose
+echo -e "${GREEN}🚀 Starting the service...${NC}\n"
 cd $INSTALL_DIR
 docker compose up -d
 
-echo -e "${GREEN}✅ نصب و راه‌اندازی کامل شد!${NC}\n"
-echo -e "🌍 برای دسترسی به پنل، به آدرس زیر بروید: http://$SERVER_IP"
+echo -e "${GREEN}✅ Installation and setup completed successfully!${NC}\n"
+echo -e "🌍 Access the panel at: http://$SERVER_IP"
