@@ -48,7 +48,7 @@ fi
 
 # Clone private GitHub repository
 echo -e "${GREEN}📥 Cloning project from GitHub...${NC}\n"
-git clone https://$GITHUB_USER:$GITHUB_TOKEN@github.com/$GITHUB_USER/Wireguard.git /root
+git clone https://$GITHUB_USER:$GITHUB_TOKEN@github.com/$GITHUB_USER/Wireguard.git $INSTALL_DIR
 
 # Check if cloning was successful
 if [[ $? -ne 0 ]]; then
