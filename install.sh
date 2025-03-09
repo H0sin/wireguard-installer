@@ -59,9 +59,6 @@ fi
 # Replace server IP in configuration files
 echo -e "${YELLOW}🔄 Replacing server IP in configuration files...${NC}\n"
 cd $INSTALL_DIR
-sed -i "s/REPLACE_WITH_SERVER_IP/$SERVER_IP/g" $INSTALL_DIR/docker-compose.override.yml
-sed -i "s/REPLACE_WITH_SERVER_IP/$SERVER_IP/g" $INSTALL_DIR/Src/Services/Api/Wireguard.Api/appsettings.Development.json
-sed -i "s/REPLACE_WITH_SERVER_IP/$SERVER_IP/g" $INSTALL_DIR/Src/Services/Api/Wireguard.Api/appsettings.json
 
 # Start Docker Compose
 echo -e "${GREEN}🚀 Starting the service...${NC}\n"
